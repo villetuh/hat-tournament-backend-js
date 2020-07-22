@@ -1,71 +1,53 @@
-const { response } = require('express');
-
 const tournamentsRouter = require('express').Router();
 
-let tournaments = [
-  {
-    id: "1",
-    name: "Tournament1",
-    players: [],
-    playerPools: [],
-    teams: []
-  },
-  {
-    id: "2",
-    name: "Tournament2",
-    players: [],
-    playerPools: [],
-    teams: []
-  }
-];
-let nextId = 3;
+const Tournament = require('../models/tournament');
 
 tournamentsRouter.get('/', async (request, response) => {
+  const tournaments = await Tournament.find({});
+  
   return response.json(tournaments);
 });
 
 tournamentsRouter.get('/:id', async (request, response) => {
-  const tournament = tournaments.find(tournament => tournament.id === request.params.id);
-  
-  if (tournament === undefined) {
+  const tournament = await Tournament.findById(request.params.id);
+  if (tournament === null) {
     return response.status(404).end();
   }
+
   return response.json(tournament);
 });
 
 tournamentsRouter.post('/', async (request, response) => {
-  const tournament = {
-    ...request.body,
-    id: nextId.toString(),
-  }
+  const tournament = new Tournament({
+    ...request.body
+  });
 
-  nextId++;
-  tournaments.push(tournament);
+  const savedTournament = await tournament.save();
 
-  return response.status(201).json(tournament);
+  return response.status(201).json(savedTournament);
 });
 
 tournamentsRouter.delete('/:id', async (request, response) => {
-  const tournament = tournaments.find(tournament => tournament.id === request.params.id);
+  const tournament = await Tournament.findById(request.params.id);
+
   if (tournament !== undefined) {
-    tournaments.splice(tournaments.indexOf(tournament), 1);
+    await tournament.deleteOne();
   }
 
   return response.status(204).end();
 });
 
 tournamentsRouter.put('/:id', async (request, response) => {
-  const tournament = tournaments.find(tournament => tournament.id === request.params.id);
-  if (tournament === undefined) {
-    return response.status(400).end();
-  }
+  let updatedTournament = {
+    name: request.body.name,
+    players: request.body.players,
+    playerPools: request.body.playerPools,
+    teams: request.body.teams
+  };
 
-  tournament.name = request.body.name;
-  tournament.players = request.body.players;
-  tournament.playerPools = request.body.playerPools;
-  tournament.teams = request.body.teams;
+  updatedTournament = await Tournament.findByIdAndUpdate(request.params.id, updatedTournament, { new: true });
 
-  return response.json(tournament);
+  return response.json(updatedTournament);
 });
 
 module.exports = tournamentsRouter;
