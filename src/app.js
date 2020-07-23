@@ -3,6 +3,7 @@ require('express-async-errors');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+const loginRouter = require('./controllers/login');
 const tournamentsRouter = require('./controllers/tournaments');
 const usersRouter = require('./controllers/users');
 
@@ -20,6 +21,7 @@ app.use(express.static('build'));
 app.use(express.json());
 
 // Controllers
+app.use('/api/login', loginRouter);
 app.use('/api/tournaments', tournamentsRouter);
 app.use('/api/users', usersRouter);
 
