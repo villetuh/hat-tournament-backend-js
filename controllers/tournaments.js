@@ -30,7 +30,7 @@ tournamentsRouter.post('/', async (request, response) => {
 tournamentsRouter.delete('/:id', async (request, response) => {
   const tournament = await Tournament.findById(request.params.id);
 
-  if (tournament !== undefined) {
+  if (tournament !== null) {
     await tournament.deleteOne();
   }
 
