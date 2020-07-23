@@ -30,9 +30,11 @@ tournamentsRouter.post('/', async (request, response) => {
 tournamentsRouter.delete('/:id', async (request, response) => {
   const tournament = await Tournament.findById(request.params.id);
 
-  if (tournament !== null) {
-    await tournament.deleteOne();
+  if (tournament === null) {
+    return response.status(404).end();
   }
+
+  await tournament.deleteOne();
 
   return response.status(204).end();
 });
@@ -46,6 +48,10 @@ tournamentsRouter.put('/:id', async (request, response) => {
   };
 
   updatedTournament = await Tournament.findByIdAndUpdate(request.params.id, updatedTournament, { new: true });
+
+  if (updatedTournament === null) {
+    return response.status(404).end();
+  }
 
   return response.json(updatedTournament);
 });
