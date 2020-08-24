@@ -1,6 +1,9 @@
 const tournamentsRouter = require('express').Router();
 
 const Tournament = require('../models/tournament');
+const authenticateJWT = require('../utils/middleware').authenticateJWT;
+
+tournamentsRouter.use(authenticateJWT);
 
 tournamentsRouter.get('/', async (request, response) => {
   const tournaments = await Tournament.find({});
