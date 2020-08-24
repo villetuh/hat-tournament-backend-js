@@ -16,7 +16,11 @@ const tournamentSchema = mongoose.Schema({
     {
       type: String
     }
-  ]
+  ],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 });
 
 tournamentSchema.set('toJSON', {

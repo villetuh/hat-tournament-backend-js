@@ -8,7 +8,13 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  passwordHash: { type: String, required: true }
+  passwordHash: { type: String, required: true },
+  tournaments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Tournament'
+    }
+  ]
 });
 
 userSchema.set('toJSON', {
