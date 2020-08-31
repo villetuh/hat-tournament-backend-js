@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const tournamentSchema = mongoose.Schema({
+const playerPoolSchema = mongoose.Schema({
   name: { type: String, required: true },
   players: [
     {
@@ -8,25 +8,17 @@ const tournamentSchema = mongoose.Schema({
       ref: 'Player'
     }
   ],
-  playerPools: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'PlayerPool'
-    }
-  ],
-  teams: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Team'
-    }
-  ],
+  tournament: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tournament'
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }
 });
 
-tournamentSchema.set('toJSON', {
+playerPoolSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
@@ -34,6 +26,6 @@ tournamentSchema.set('toJSON', {
   }
 });
 
-const Tournament = mongoose.model('Tournament', tournamentSchema);
+const PlayerPool = mongoose.model('PlayerPool', playerPoolSchema);
 
-module.exports = Tournament;
+module.exports = PlayerPool;

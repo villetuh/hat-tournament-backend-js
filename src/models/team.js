@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const tournamentSchema = mongoose.Schema({
+const teamSchema = mongoose.Schema({
   name: { type: String, required: true },
   players: [
     {
@@ -8,18 +8,10 @@ const tournamentSchema = mongoose.Schema({
       ref: 'Player'
     }
   ],
-  playerPools: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'PlayerPool'
-    }
-  ],
-  teams: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Team'
-    }
-  ],
+  tournament: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tournament'
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -34,6 +26,6 @@ tournamentSchema.set('toJSON', {
   }
 });
 
-const Tournament = mongoose.model('Tournament', tournamentSchema);
+const Team = mongoose.model('Team', teamSchema);
 
-module.exports = Tournament;
+module.exports = Team;
