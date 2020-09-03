@@ -26,6 +26,10 @@ tournamentsRouter.get('/:id', async (request, response) => {
 tournamentsRouter.post('/', async (request, response) => {
   const user = await User.findById(request.user.id);
 
+  if (user == null) {
+    return response.status(401).json({ error: 'Unauthorized request' });
+  }
+
   const tournament = new Tournament({
     ...request.body,
     user: user._id

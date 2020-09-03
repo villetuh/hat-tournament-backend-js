@@ -8,13 +8,21 @@ const authenticateJWT = require('../utils/middleware').authenticateJWT;
 playersRouter.use(authenticateJWT);
 
 playersRouter.get('/', async (request, response) => {
-  const players = await Player.find({ tournament: request.params.tournamentId });
+  const players = await Player.find({ 
+    tournament: request.params.tournamentId, 
+    user: request.user.id 
+  });
   
   return response.json(players);
 });
 
 playersRouter.get('/:id', async (request, response) => {
-  const player = await Player.find({ _id: request.params.id, tournament: request.params.tournamentId });
+  const player = await Player.find({ 
+    _id: request.params.id, 
+    tournament: request.params.tournamentId, 
+    user: request.user.id 
+  });
+
   if (player === null) {
     return response.status(404).end();
   }
@@ -26,12 +34,12 @@ playersRouter.post('/', async (request, response) => {
   const user = await User.findById(request.user.id);
   const tournament = await Tournament.findById(request.params.tournamentId);
 
-  if (user == null) {
-    return response.status(401).json({ error: 'Unauthorized request' });
-  }
-
   if (tournament == null) {
     return response.status(400).json({ error: 'Request didn\'t contain valid data.' });
+  }
+
+  if (user == null || tournament.user.toString() !== user.id.toString()) {
+    return response.status(401).json({ error: 'Unauthorized request' });
   }
 
   const player = new Player({
@@ -53,9 +61,10 @@ playersRouter.delete('/:id', async (request, response) => {
   const tournament = await Tournament.findById(request.params.tournamentId);
   const player = await Player.findById(request.params.id);
 
-  if (player == null ||
+  if (tournament == null || player == null ||
       player.user.toString() !== user.id.toString() ||
-      player.tournament.toString() !== tournament.id.toString()) {
+      player.tournament.toString() !== tournament.id.toString() ||
+      tournament.user.toString() !== user.id.toString()) {
     return response.status(401).json({ error: 'Unauthorized request' });
   }
 
@@ -72,9 +81,10 @@ playersRouter.put('/:id', async (request, response) => {
   const tournament = await Tournament.findById(request.params.tournamentId);
   const player = await Player.findById(request.params.id);
 
-  if (player == null ||
+  if (tournament == null || player == null ||
       player.user.toString() !== user.id.toString() ||
-      player.tournament.toString() !== tournament.id.toString()) {
+      player.tournament.toString() !== tournament.id.toString() ||
+      tournament.user.toString() !== user.id.toString()) {
     return response.status(401).json({ error: 'Unauthorized request' });
   }
 
