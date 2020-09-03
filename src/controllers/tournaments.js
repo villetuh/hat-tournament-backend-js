@@ -7,14 +7,16 @@ const authenticateJWT = require('../utils/middleware').authenticateJWT;
 tournamentsRouter.use(authenticateJWT);
 
 tournamentsRouter.get('/', async (request, response) => {
-  const tournaments = await Tournament.find({});
+  const tournaments = await Tournament.find({ user: request.user.id });
   
   return response.json(tournaments);
 });
 
 tournamentsRouter.get('/:id', async (request, response) => {
+  const user = await User.findById(request.user.id);
   const tournament = await Tournament.findById(request.params.id);
-  if (tournament === null) {
+
+  if (tournament === null || tournament.user.toString() !== user.id.toString()) {
     return response.status(404).end();
   }
 
