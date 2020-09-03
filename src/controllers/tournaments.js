@@ -1,5 +1,7 @@
 const tournamentsRouter = require('express').Router();
 const playersRouter = require('./players');
+const teamsRouter = require('./teams');
+
 const Tournament = require('../models/tournament');
 const User = require('../models/user');
 const authenticateJWT = require('../utils/middleware').authenticateJWT;
@@ -81,5 +83,6 @@ tournamentsRouter.put('/:id', async (request, response) => {
 });
 
 tournamentsRouter.use('/:tournamentId/players', playersRouter);
+tournamentsRouter.use('/:tournamentId/teams', teamsRouter);
 
 module.exports = tournamentsRouter;
