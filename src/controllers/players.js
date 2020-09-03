@@ -1,6 +1,8 @@
 const playersRouter = require('express').Router({ mergeParams: true });
 
 const Player = require('../models/player');
+const PlayerPool = require('../models/playerpool');
+const Team = require('../models/team');
 const Tournament = require('../models/tournament');
 const User = require('../models/user');
 const authenticateJWT = require('../utils/middleware').authenticateJWT;
@@ -50,8 +52,9 @@ playersRouter.post('/', async (request, response) => {
 
   const savedPlayer = await player.save();
 
-  tournament.players = tournament.players.concat(savedPlayer._id);
-  await tournament.save();
+  await updatePlayerReferenceToPlayerPool(savedPlayer);
+  await updatePlayerReferenceToTeam(savedPlayer);
+  await updatePlayerReferenceToTournament(savedPlayer, tournament);
 
   return response.status(201).json(savedPlayer);
 });
@@ -68,10 +71,11 @@ playersRouter.delete('/:id', async (request, response) => {
     return response.status(401).json({ error: 'Unauthorized request' });
   }
 
-  await player.deleteOne();
+  await removePlayerReferenceFromPlayerPool(player);
+  await removePlayerReferenceFromTeam(player);
+  await removePlayerReferenceFromTournament(player, tournament);
 
-  tournament.players = tournament.players.filter(player => player != null && player.toString() !== request.params.id);
-  await tournament.save();
+  await player.deleteOne();
 
   return response.status(204).end();
 });
@@ -90,13 +94,95 @@ playersRouter.put('/:id', async (request, response) => {
 
   let updatedPlayer = {
     name: request.body.name,
+    playerPool: request.body.playerPool,
+    team: request.body.team,
     tournament: tournament.id,
     user: user.id
   };
 
+  await removePlayerReferenceFromPlayerPool(player);
+  await removePlayerReferenceFromTeam(player);
+
   updatedPlayer = await Player.findByIdAndUpdate(request.params.id, updatedPlayer, { new: true });
+
+  await updatePlayerReferenceToPlayerPool(updatedPlayer);
+  await updatePlayerReferenceToTeam(updatedPlayer);
 
   return response.json(updatedPlayer);
 });
+
+async function updatePlayerReferenceToPlayerPool(player) {
+  if (player.playerPool === undefined) {
+    return;
+  }
+
+  const playerPool = await PlayerPool.findById(player.playerPool);
+  if (playerPool == null) {
+    return;
+  }
+  playerPool.players = playerPool.players.concat(player.id);
+  await playerPool.save();
+}
+
+async function updatePlayerReferenceToTeam(player) {
+  if (player.team === undefined) {
+    return;
+  }
+
+  const team = await Team.findById(player.team);
+  if (team == null) {
+    return;
+  }
+  team.players = team.players.concat(player.id);
+  await team.save();
+}
+
+async function updatePlayerReferenceToTournament(player, tournament) {
+  if (tournament === undefined) {
+    tournament = await Tournament.findById(player.tournamentId);
+  }
+
+  tournament.players = tournament.players.concat(player.id);
+  await tournament.save();
+}
+
+async function removePlayerReferenceFromPlayerPool(player) {
+  if (player.playerPool === undefined) {
+    return;
+  }
+
+  const playerPool = await PlayerPool.findById(player.playerPool);
+
+  if (playerPool == null) {
+    return;
+  }
+
+  playerPool.players = playerPool.players.filter(p => p != null && p.toString() != player.id.toString());
+  await playerPool.save();
+}
+
+async function removePlayerReferenceFromTeam(player) {
+  if (player.team === undefined) {
+    return;
+  }
+
+  const team = await Team.findById(player.team);
+
+  if (team == null) {
+    return;
+  }
+
+  team.players = team.players.filter(p => p != null && p.toString() != player.id.toString());
+  await team.save();
+}
+
+async function removePlayerReferenceFromTournament(player, tournament) {
+  if (tournament === undefined) {
+    tournament = await Tournament.findById(player.tournamentId);
+  }
+
+  tournament.players = tournament.players.filter(p => p != null && p.toString() !== player.id.toString());
+  await tournament.save();
+}
 
 module.exports = playersRouter;
