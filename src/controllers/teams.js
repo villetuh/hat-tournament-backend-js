@@ -1,5 +1,6 @@
 const teamsRouter = require('express').Router({ mergeParams: true });
 
+const Player = require('../models/player');
 const Team = require('../models/team');
 const Tournament = require('../models/tournament');
 const User = require('../models/user');
@@ -52,6 +53,8 @@ teamsRouter.post('/', async (request, response) => {
   tournament.teams = tournament.teams.concat(savedTeam._id);
   await tournament.save();
 
+  await updateTeamReferencesToPlayers(team.id, team.players);
+
   return response.status(201).json(savedTeam);
 });
 
@@ -66,6 +69,8 @@ teamsRouter.delete('/:id', async (request, response) => {
       tournament.user.toString() !== user.id.toString()) {
     return response.status(401).json({ error: 'Unauthorized request' });
   }
+
+  await removeTeamReferencesFromPlayers(team.players);
 
   await team.deleteOne();
 
@@ -89,13 +94,57 @@ teamsRouter.put('/:id', async (request, response) => {
 
   let updatedTeam = {
     name: request.body.name,
+    players: request.body.players,
     tournament: tournament.id,
     user: user.id
   };
 
   updatedTeam = await Team.findByIdAndUpdate(request.params.id, updatedTeam, { new: true });
 
+  await updateTeamReferencesToPlayers(updatedTeam.id, updatedTeam.players);
+
   return response.json(updatedTeam);
 });
+
+async function updateTeamReferencesToPlayers(newTeamId, players) {
+  if (players === undefined) {
+    return;
+  }
+  
+  for (let i = 0; i < players.length; i++) {
+    const player = await Player.findById(players[i]);
+    if (player == null) {
+      return;
+    }
+
+    // Remove reference from previous team
+    if (player.team !== undefined) {
+      const previousTeam = await Team.findById(player.team);
+      previousTeam.players = previousTeam.players.filter(p => p != null && p.toString() !== player.id);
+      await previousTeam.save();
+    }
+
+    // Update team information to player
+    player.team = newTeamId;
+    await player.save();
+  }
+}
+
+async function removeTeamReferencesFromPlayers(players) {
+  if (players === undefined) {
+    return;
+  }
+  
+  for (let i = 0; i < players.length; i++) {
+    const player = await Player.findById(players[i]);
+    if (player == null) {
+      return;
+    }
+
+    // Remove team information from player
+    player.team = undefined;
+    await player.save();
+  }
+}
 
 module.exports = teamsRouter;

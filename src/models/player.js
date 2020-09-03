@@ -2,6 +2,14 @@ const mongoose = require('mongoose');
 
 const playerSchema = mongoose.Schema({
   name: { type: String, required: true },
+  playerPool: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PlayerPool'
+  },
+  team: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team'
+  },
   tournament: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tournament'
