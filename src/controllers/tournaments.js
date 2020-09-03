@@ -1,4 +1,5 @@
 const tournamentsRouter = require('express').Router();
+const playerPoolsRouter = require('./playerpools');
 const playersRouter = require('./players');
 const teamsRouter = require('./teams');
 
@@ -82,6 +83,7 @@ tournamentsRouter.put('/:id', async (request, response) => {
   return response.json(updatedTournament);
 });
 
+tournamentsRouter.use('/:tournamentId/playerpools', playerPoolsRouter);
 tournamentsRouter.use('/:tournamentId/players', playersRouter);
 tournamentsRouter.use('/:tournamentId/teams', teamsRouter);
 

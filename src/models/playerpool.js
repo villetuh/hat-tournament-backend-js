@@ -21,6 +21,8 @@ const playerPoolSchema = mongoose.Schema({
 playerPoolSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
+    delete returnedObject.tournament;
+    delete returnedObject.user;
     delete returnedObject._id;
     delete returnedObject.__v;
   }
