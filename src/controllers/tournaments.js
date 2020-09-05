@@ -3,6 +3,9 @@ const playerPoolsRouter = require('./playerpools');
 const playersRouter = require('./players');
 const teamsRouter = require('./teams');
 
+const Player = require('../models/player');
+const PlayerPool = require('../models/playerpool');
+const Team = require('../models/team');
 const Tournament = require('../models/tournament');
 const User = require('../models/user');
 const authenticateJWT = require('../utils/middleware').authenticateJWT;
@@ -52,6 +55,18 @@ tournamentsRouter.delete('/:id', async (request, response) => {
 
   if (tournament == null || tournament.user.toString() !== user.id.toString()) {
     return response.status(401).json({ error: 'Unauthorized request' });
+  }
+
+  for (let i = 0; i < tournament.playerPools.length; i++) {
+    await PlayerPool.findByIdAndDelete(tournament.playerPools[i]);
+  }
+
+  for (let i = 0; i < tournament.teams.length; i++) {
+    await Team.findByIdAndDelete(tournament.teams[i]);
+  }
+
+  for (let i = 0; i < tournament.players.length; i++) {
+    await Player.findByIdAndDelete(tournament.players[i]);
   }
 
   await tournament.deleteOne();
