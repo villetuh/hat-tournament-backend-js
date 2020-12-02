@@ -116,9 +116,8 @@ async function updateTeamReferencesToPlayers(newTeamId, players) {
     if (player == null) {
       return;
     }
-
     // Remove reference from previous team
-    if (player.team !== undefined) {
+    if (player.team !== null && player.team !== undefined) {
       const previousTeam = await Team.findById(player.team);
       previousTeam.players = previousTeam.players.filter(p => p != null && p.toString() !== player.id);
       await previousTeam.save();
